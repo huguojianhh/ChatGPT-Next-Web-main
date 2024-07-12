@@ -25,7 +25,7 @@ export function AuthPage() {
   const navigate = useNavigate();
   const accessStore = useAccessStore();
 
-  const [errorText, setErrorText] = useState<string>('');
+  const [errorText, setErrorText] = useState<string>("");
 
   const goHome = () => navigate(Path.Home);
   const goChat = () => navigate(Path.Chat);
@@ -37,10 +37,12 @@ export function AuthPage() {
     });
   }; // Reset access code to empty string
 
-
   const checkSubmit = async () => {
-    setErrorText('')
-    let result = await accessStore.checkUserAndCodeFetch(accessStore.accessUserName, accessStore.accessCode)
+    setErrorText("");
+    let result = await accessStore.checkUserAndCodeFetch(
+      accessStore.accessUserName,
+      accessStore.accessCode,
+    );
     if (result) {
       accessStore.update((access) => {
         access.isAuth = true;
@@ -50,10 +52,9 @@ export function AuthPage() {
       accessStore.update((access) => {
         access.isAuth = false;
       });
-      setErrorText('访问码错误！')
+      setErrorText("访问码错误！");
     }
-  };  
-
+  };
 
   useEffect(() => {
     if (getClientConfig()?.isApp) {
@@ -67,12 +68,6 @@ export function AuthPage() {
       <div className={`no-dark ${styles["auth-logo"]}`}>
         <BotIcon />
       </div>
-
-      <Input
-            placeholder={Locale.Auth.UserInput}
-            className={styles["edit-prompt-content"]}
-            rows={1}
-            />
       <div className={styles["auth-title"]}>{Locale.Auth.Title}</div>
       {/* <div className={styles["auth-tips"]}>
         <span>
@@ -119,7 +114,14 @@ export function AuthPage() {
           /> */}
         </>
       ) : null}
-      <div style={{ color: 'red' }} className={styles["auth-tips"]}> {errorText}</div>
+
+      {errorText && (
+        <div style={{ color: "red" }} className={styles["auth-error-tips"]}>
+          {" "}
+          {errorText}
+        </div>
+      )}
+
       <div className={styles["auth-actions"]}>
         <IconButton
           text={Locale.Auth.Confirm}

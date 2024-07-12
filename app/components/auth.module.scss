@@ -18,15 +18,20 @@
 
   .auth-tips {
     font-size: 14px;
-
      span{
       margin-right: 10px;
      }
   }
 
+  .auth-error-tips {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
   .auth-input {
     margin: 3vh 0;
     max-width: 100%;
+    text-align: left;
   }
 
   .auth-actions {

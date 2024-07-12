@@ -42,6 +42,9 @@ export function Loading(props: { noLogo?: boolean }) {
 const Settings = dynamic(async () => (await import("./settings")).Settings, {
   loading: () => <Loading noLogo />,
 });
+const Auth2 = dynamic(async () => (await import("./auth2")).AuthPage, {
+  loading: () => <Loading noLogo />,
+});
 
 const Chat = dynamic(async () => (await import("./chat")).Chat, {
   loading: () => <Loading noLogo />,
@@ -128,7 +131,7 @@ function Screen() {
   const isHome = location.pathname === Path.Home;
 
   const accessStore = useAccessStore();
-  const isAuth = !accessStore.isAuth
+  const isAuth = !accessStore.isAuth;
 
   // location.pathname === Path.Auth;
   const isMobileScreen = useMobileScreen();
@@ -143,7 +146,8 @@ function Screen() {
     <div
       className={
         styles.container +
-        ` ${shouldTightBorder ? styles["tight-container"] : styles.container} ${getLang() === "ar" ? styles["rtl-screen"] : ""
+        ` ${shouldTightBorder ? styles["tight-container"] : styles.container} ${
+          getLang() === "ar" ? styles["rtl-screen"] : ""
         }`
       }
     >
@@ -162,6 +166,7 @@ function Screen() {
               <Route path={Path.Masks} element={<MaskPage />} />
               <Route path={Path.Chat} element={<Chat />} />
               <Route path={Path.Settings} element={<Settings />} />
+              <Route path={Path.Auth2} element={<Auth2 />} />
             </Routes>
           </div>
         </>
