@@ -46,7 +46,8 @@ async function handle(
   console.log("[Time] ", new Date().toLocaleString());
   let resp
 
-  if (serverConfig.needCode && (!serverConfig.codes.has(hashedCode) || accessUserName != serverConfig.accessUserName)) {
+  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode)) {
+  // if (serverConfig.needCode && (!serverConfig.codes.has(hashedCode) || accessUserName != serverConfig.accessUserName)) {
     resp = {
       error: true,
       msg: !accessCode ? "empty access code" : "wrong access code",

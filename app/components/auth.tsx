@@ -9,7 +9,17 @@ import Locale from "../locales";
 import BotIcon from "../icons/bot.svg";
 import { useEffect, useState } from "react";
 import { getClientConfig } from "../config/client";
-import tr from "../locales/tr";
+import {
+  Input,
+  List,
+  ListItem,
+  Modal,
+  PasswordInput,
+  Popover,
+  Select,
+  showConfirm,
+  showToast,
+} from "./ui-lib";
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -40,10 +50,9 @@ export function AuthPage() {
       accessStore.update((access) => {
         access.isAuth = false;
       });
-      setErrorText('用户名或访问码错误！')
+      setErrorText('访问码错误！')
     }
-  };
-
+  };  
 
 
   useEffect(() => {
@@ -59,15 +68,16 @@ export function AuthPage() {
         <BotIcon />
       </div>
 
+      <Input
+            placeholder={Locale.Auth.UserInput}
+            className={styles["edit-prompt-content"]}
+            rows={1}
+            />
       <div className={styles["auth-title"]}>{Locale.Auth.Title}</div>
-      <div className={styles["auth-tips"]}>
-
+      {/* <div className={styles["auth-tips"]}>
         <span>
-
           {Locale.Auth.UserNameTitle}
-
         </span>
-
         <input
           className={styles["auth-input"]}
           type="text"
@@ -79,7 +89,7 @@ export function AuthPage() {
             );
           }}
         />
-      </div>
+      </div> */}
       {!accessStore.hideUserApiKey ? (
         <>
           <div className={styles["auth-tips"]}>
