@@ -30,6 +30,7 @@ import EditIcon from "../icons/rename.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
 import ImageIcon from "../icons/image.svg";
+import UploadFileImageIcon from "../icons/clould.svg";
 
 import LightIcon from "../icons/light.svg";
 import DarkIcon from "../icons/dark.svg";
@@ -59,6 +60,7 @@ import {
   getMessageTextContent,
   getMessageImages,
   isVisionModel,
+  isSupportUpdateFileModel,
 } from "../utils";
 
 import { compressImage } from "@/app/utils/chat";
@@ -421,6 +423,7 @@ function useScrollToBottom(
 
 export function ChatActions(props: {
   uploadImage: () => void;
+  setAttachFiles: (files: string[]) => void;
   setAttachImages: (images: string[]) => void;
   setUploading: (uploading: boolean) => void;
   showPromptModal: () => void;
@@ -469,12 +472,18 @@ export function ChatActions(props: {
   }, [allModels]);
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [showUploadImage, setShowUploadImage] = useState(false);
+  const [showUploadTextFile, setshowUploadTextFile] = useState(false);
 
   useEffect(() => {
     const show = isVisionModel(currentModel);
     setShowUploadImage(show);
-    if (!show) {
+
+    const showTextFile = isSupportUpdateFileModel(currentModel);
+    setshowUploadTextFile(showTextFile);
+
+    if (!show || !showTextFile) {
       props.setAttachImages([]);
+      props.setAttachFiles([]);
       props.setUploading(false);
     }
 
@@ -522,6 +531,16 @@ export function ChatActions(props: {
           onClick={props.uploadImage}
           text={Locale.Chat.InputActions.UploadImage}
           icon={props.uploading ? <LoadingButtonIcon /> : <ImageIcon />}
+        />
+      )}
+
+      {showUploadTextFile && (
+        <ChatAction
+          onClick={props.uploadImage}
+          text={Locale.Chat.InputActions.UploadFile}
+          icon={
+            props.uploading ? <LoadingButtonIcon /> : <UploadFileImageIcon />
+          }
         />
       )}
       <ChatAction
@@ -703,6 +722,7 @@ function _Chat() {
   const isMobileScreen = useMobileScreen();
   const navigate = useNavigate();
   const [attachImages, setAttachImages] = useState<string[]>([]);
+  const [attachFiles, setAttachFiles] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
   // prompt hints
@@ -1041,7 +1061,6 @@ function _Chat() {
     }
 
     setHitBottom(isHitBottom);
-    console.log('ccccccccc')
     setAutoScroll(isHitBottom);
   };
   function scrollToBottom() {
@@ -1216,6 +1235,51 @@ function _Chat() {
       images.splice(3, imagesLength - 3);
     }
     setAttachImages(images);
+  }
+
+  async function uploadFile() {
+    const files: string[] = [];
+    files.push(...attachFiles);
+
+    files.push(
+      ...(await new Promise<string[]>((res, rej) => {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept =
+          "text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        fileInput.multiple = true;
+        fileInput.onchange = (event: any) => {
+          setUploading(true);
+          const files = event.target.files;
+          const filesData: string[] = [];
+          for (let i = 0; i < files.length; i++) {
+            const file = event.target.files[i];
+            compressImage(file, 256 * 1024)
+              .then((dataUrl) => {
+                filesData.push(dataUrl);
+                if (
+                  filesData.length === 3 ||
+                  filesData.length === files.length
+                ) {
+                  setUploading(false);
+                  res(filesData);
+                }
+              })
+              .catch((e) => {
+                setUploading(false);
+                rej(e);
+              });
+          }
+        };
+        fileInput.click();
+      })),
+    );
+
+    const filesLength = files.length;
+    if (filesLength > 3) {
+      files.splice(3, filesLength - 3);
+    }
+    setAttachImages(files);
   }
 
   return (
@@ -1486,6 +1550,7 @@ function _Chat() {
         <ChatActions
           uploadImage={uploadImage}
           setAttachImages={setAttachImages}
+          setAttachFiles={setAttachFiles}
           setUploading={setUploading}
           showPromptModal={() => setShowPromptModal(true)}
           scrollToBottom={scrollToBottom}

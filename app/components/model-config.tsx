@@ -13,6 +13,7 @@ export function ModelConfigList(props: {
   const allModels = useAllModels();
   const value = `${props.modelConfig.model}@${props.modelConfig?.providerName}`;
 
+  console.log(allModels);
   return (
     <>
       <ListItem title={Locale.Settings.Model}>

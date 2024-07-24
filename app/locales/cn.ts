@@ -13,8 +13,8 @@ const cn = {
   Auth: {
     Title: "登录",
     Tips: "管理员开启了密码验证，请在下方填入访问码",
-    UserNameTitle:'用户名：',
-    CodeTitle:'访问码：',
+    UserNameTitle: "用户名：",
+    CodeTitle: "访问码：",
     SubTips: "或者输入你的 OpenAI 或 Google API 密钥",
     UserInput: "在此处填写用户名",
     Input: "在此处填写访问码",
@@ -68,6 +68,7 @@ const cn = {
       Clear: "清除聊天",
       Settings: "对话设置",
       UploadImage: "上传图片",
+      UploadFile: "上传文件",
     },
     Rename: "重命名对话",
     Typing: "正在输入…",
