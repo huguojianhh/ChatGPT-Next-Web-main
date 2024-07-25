@@ -9,8 +9,11 @@ import { getClientConfig } from "../config/client";
 import { createPersistStore } from "../utils/store";
 import { ensure } from "../utils/clone";
 import { DEFAULT_CONFIG } from "./config";
+import { getServerSideConfig } from "../config/server";
+import { nanoid } from "nanoid";
 
 let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
+const serverConfig = getServerSideConfig();
 
 const DEFAULT_OPENAI_URL =
   getClientConfig()?.buildMode === "export"
@@ -23,6 +26,7 @@ const DEFAULT_AZURE_URL =
     : ApiPath.Azure;
 
 const DEFAULT_ACCESS_STATE = {
+  userId: nanoid(),
   accessUserName: "",
   accessCode: "",
   isAuth: false,
@@ -48,6 +52,11 @@ const DEFAULT_ACCESS_STATE = {
   anthropicApiKey: "",
   anthropicApiVersion: "2023-06-01",
   anthropicUrl: "",
+
+  //jimmy ai
+  difyaiApiKey: serverConfig.DifyaiApiKey ?? "",
+  difyaiApiVersion: "2023-06-01",
+  difyaiUrl: serverConfig.DifyaiUrl ?? "",
 
   // server config
   needCode: true,
@@ -128,7 +137,7 @@ export const useAccessStore = createPersistStore(
         });
     },
     checkUserAndCodeFetch(accessUserName?: string, accessCode?: string) {
-      console.log(accessCode)
+      console.log(accessCode);
       return new Promise((rosolve, reject) => {
         fetch("/api/auth", {
           method: "post",
@@ -142,14 +151,14 @@ export const useAccessStore = createPersistStore(
         })
           .then((res) => res.json())
           .then((res) => {
-            console.log('auth res', res)
-            rosolve(!res.error)
+            console.log("auth res", res);
+            rosolve(!res.error);
           })
           .catch((e) => {
             console.error("[Config] failed to fetch config", e);
-            reject(false)
-          })
-      })
+            reject(false);
+          });
+      });
     },
   }),
   {

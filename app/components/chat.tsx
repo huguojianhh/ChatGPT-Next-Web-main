@@ -421,9 +421,16 @@ function useScrollToBottom(
   };
 }
 
+export type AttachFileType = {
+  name: string;
+  type: string;
+  size: number;
+};
+
 export function ChatActions(props: {
   uploadImage: () => void;
-  setAttachFiles: (files: string[]) => void;
+  uploadFile: () => void;
+  setAttachFiles: (files: AttachFileType[]) => void;
   setAttachImages: (images: string[]) => void;
   setUploading: (uploading: boolean) => void;
   showPromptModal: () => void;
@@ -536,7 +543,7 @@ export function ChatActions(props: {
 
       {showUploadTextFile && (
         <ChatAction
-          onClick={props.uploadImage}
+          onClick={props.uploadFile}
           text={Locale.Chat.InputActions.UploadFile}
           icon={
             props.uploading ? <LoadingButtonIcon /> : <UploadFileImageIcon />
@@ -722,7 +729,7 @@ function _Chat() {
   const isMobileScreen = useMobileScreen();
   const navigate = useNavigate();
   const [attachImages, setAttachImages] = useState<string[]>([]);
-  const [attachFiles, setAttachFiles] = useState<string[]>([]);
+  const [attachFiles, setAttachFiles] = useState<AttachFileType[]>([]);
   const [uploading, setUploading] = useState(false);
 
   // prompt hints
@@ -802,9 +809,10 @@ function _Chat() {
     }
     setIsLoading(true);
     chatStore
-      .onUserInput(userInput, attachImages)
+      .onUserInput(userInput, attachImages, attachFiles)
       .then(() => setIsLoading(false));
     setAttachImages([]);
+    setAttachFiles([]);
     localStorage.setItem(LAST_INPUT_KEY, userInput);
     setUserInput("");
     setPromptHints([]);
@@ -1237,12 +1245,35 @@ function _Chat() {
     setAttachImages(images);
   }
 
+  function getFileTypeByMimeType(mimeType: string) {
+    const mimeTypes: any = {
+      "text/plain": ".txt",
+      "application/pdf": ".pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        ".docx",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        ".xlsx",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        ".pptx",
+      "application/msword": ".doc",
+      "application/vnd.ms-excel": ".xls",
+      "application/vnd.ms-powerpoint": ".ppt",
+      "image/jpeg": ".jpg",
+      "image/png": ".png",
+      "image/gif": ".gif",
+      "audio/mpeg": ".mp3",
+      "video/mp4": ".mp4",
+    };
+
+    return mimeTypes[mimeType] || "Unknown file type";
+  }
+
   async function uploadFile() {
-    const files: string[] = [];
+    const files: AttachFileType[] = [];
     files.push(...attachFiles);
 
     files.push(
-      ...(await new Promise<string[]>((res, rej) => {
+      ...(await new Promise<AttachFileType[]>((res, rej) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
         fileInput.accept =
@@ -1250,36 +1281,29 @@ function _Chat() {
         fileInput.multiple = true;
         fileInput.onchange = (event: any) => {
           setUploading(true);
-          const files = event.target.files;
-          const filesData: string[] = [];
-          for (let i = 0; i < files.length; i++) {
+          const files2 = event.target.files;
+
+          console.log(files2);
+          const filesData: AttachFileType[] = [];
+          for (let i = 0; i < files2.length; i++) {
             const file = event.target.files[i];
-            compressImage(file, 256 * 1024)
-              .then((dataUrl) => {
-                filesData.push(dataUrl);
-                if (
-                  filesData.length === 3 ||
-                  filesData.length === files.length
-                ) {
-                  setUploading(false);
-                  res(filesData);
-                }
-              })
-              .catch((e) => {
-                setUploading(false);
-                rej(e);
-              });
+            filesData.push(file);
           }
+          setUploading(false);
+
+          console.log(filesData);
+          res(filesData);
         };
         fileInput.click();
       })),
     );
 
+    console.log(files);
     const filesLength = files.length;
     if (filesLength > 3) {
       files.splice(3, filesLength - 3);
     }
-    setAttachImages(files);
+    setAttachFiles(files);
   }
 
   return (
@@ -1549,6 +1573,7 @@ function _Chat() {
 
         <ChatActions
           uploadImage={uploadImage}
+          uploadFile={uploadFile}
           setAttachImages={setAttachImages}
           setAttachFiles={setAttachFiles}
           setUploading={setUploading}
@@ -1570,7 +1595,7 @@ function _Chat() {
         />
         <label
           className={`${styles["chat-input-panel-inner"]} ${
-            attachImages.length != 0
+            attachImages.length != 0 || attachFiles.length != 0
               ? styles["chat-input-panel-inner-attach"]
               : ""
           }`}
@@ -1616,6 +1641,54 @@ function _Chat() {
               })}
             </div>
           )}
+
+          {attachFiles.length != 0 && (
+            <div
+              className={[
+                styles["file-list-box"],
+                styles["attach-images"],
+              ].join(" ")}
+            >
+              {attachFiles.map((file, index) => {
+                return (
+                  <div key={index} className={styles["file-box"]}>
+                    <div className={styles["file"]}>
+                      <div
+                        className={styles["icon"]}
+                        style={{
+                          backgroundImage: `url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGwAAABsCAMAAAC4uKf/AAAA1VBMVEVHcEwgUP8kVP8lVf8oUP8IMKckVP8lU/8NL6kkVP8gUP8QMJ8NL6klVf8jU/8NL6oLMKokVP8OMKglUv8NMKkkVP8kU/8OLqskVP8OL6klU/8kVP8OLqkNL6oNMKkNL6olU/8NMKckVf8MMKckVP////8NL6nI1P8QNLR2lP8/af8yX/8xX/+6yf9Aaf/W3/9bf/+tv/+7yv+Env/x9f/k6v+ftP9oif8YQtQeS+lNdP9piv+En/8XQM/j6v8VPckhT/QSNrqgtP8eS+oTOL+Sqf+Rqf9kuMQUAAAAJHRSTlMAEHBgICDv39/PIBDv35C/ML9wYF9A0H+wz5+Pj59Q76Bgr0CdNRTaAAACCElEQVRo3u3a11ICQRAF0GVFFpAgIIggxt5ZcpJgzvr/n+STVZZMT+zZp7k/cGrSZavoIOClGHaiHKjnvHq5H5hlrwaaYYzlz0yoZgRggDF2pE1lugCGWOlQ08q2wBhjeb1zy0ZggbH8gc4eGlq/GKtqYF2wxNip+pUHa4zVVbGIAGPXrhf2FyupXckCCab2ALJAg7EThQcQUmGsJ8faZBg7dnlk/zF5J+cIMSbrZKDEZFeSFJN1Mi0m6WRiTNzJ1Jiwk8kxdpYmJuhkekzwABxgeCfbYH1M6znAXjAM62Qb7A7FkE4GJ/uIdDI4Whq3Ja0wuMW1Ojkm0Kr0GLxi51ZygAF8PH2+9TlxgmHxmMc8JsYGk2Q3AyfYaBZzs546wBYxkoQem8Zo5uTYA47dkGODNLFhmtsICWZNUrz6s6GbR73cfdPLx7HvRo95zGMe85glNvrmfTcimQyssPtVrJVkbPEpt441szHH3mPtjI2xRB/bGmNLfWxujH3pY0NjbLTStRY2V/85vasPMNyov+lksfXd6DGPecxjHiP+u1+YHOlQjSQFDnbhCmsTD58IExKP1QhT5P01WEvvyKxGoURpUA95CVLGxihTXFgQVOitCj5yWCDfxAz9MCVqFV2MbvLTKkqGNwnPrZKRTx4SLa7cVBt0JLgntYb61G14VTD+fctFnZB/WD8ijwbYDm7GXAAAAABJRU5ErkJggg==")`, // 这里将base64链接替换为'aaa'
+                        }}
+                      ></div>
+                      <div className={styles["file-info"]}>
+                        <div className={styles["name"]}>{file.name}</div>
+                        <div className={styles["status"]}>
+                          <div className={styles["success"]}>
+                            <div className={styles["type"]}>
+                              {getFileTypeByMimeType(file.type)}
+                            </div>
+                            <div className={styles["size"]}>
+                              {file.size / 1024 < 1024
+                                ? (file.size / 1024).toFixed(2) + "KB"
+                                : (file.size / 1024 / 1024).toFixed(2) + "M"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <DeleteImageButton
+                        deleteImage={() => {
+                          setAttachFiles(
+                            attachFiles.filter((_, i) => i !== index),
+                          );
+                        }}
+                      />
+                      <p className={styles["close"]}></p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <IconButton
             icon={<SendWhiteIcon />}
             text={Locale.Chat.Send}

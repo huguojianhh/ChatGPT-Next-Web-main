@@ -23,7 +23,6 @@ function parseApiKey(bearToken: string) {
     apiKey: isApiKey ? token : "",
   };
 }
- 
 
 export function auth(req: NextRequest, modelProvider: ModelProvider) {
   const authToken = req.headers.get("Authorization") ?? "";
@@ -34,7 +33,9 @@ export function auth(req: NextRequest, modelProvider: ModelProvider) {
   const hashedCode = md5.hash(accessCode ?? "").trim();
 
   const serverConfig = getServerSideConfig();
-  console.log("[Auth] allowed hashed userName: ", [...serverConfig.accessUserName]);
+  console.log("[Auth] allowed hashed userName: ", [
+    ...serverConfig.accessUserName,
+  ]);
   console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
   console.log("[Auth] got access code:", accessCode);
   console.log("[Auth] hashed access code:", hashedCode);
@@ -74,6 +75,9 @@ export function auth(req: NextRequest, modelProvider: ModelProvider) {
         break;
       case ModelProvider.Claude:
         systemApiKey = serverConfig.anthropicApiKey;
+        break;
+      case ModelProvider.Difyai:
+        systemApiKey = serverConfig.DifyaiApiKey;
         break;
       case ModelProvider.GPT:
       default:

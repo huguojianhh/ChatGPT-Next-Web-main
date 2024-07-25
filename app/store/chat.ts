@@ -4,6 +4,7 @@ import Locale, { getLang } from "../locales";
 import { showToast } from "../components/ui-lib";
 import { ModelConfig, ModelType, useAppConfig } from "./config";
 import { createEmptyMask, Mask } from "./mask";
+import { AttachFileType } from "../components/chat";
 import {
   DEFAULT_INPUT_TEMPLATE,
   DEFAULT_MODELS,
@@ -14,6 +15,7 @@ import {
   StoreKey,
   SUMMARIZE_MODEL,
   GEMINI_SUMMARIZE_MODEL,
+  ApiPath,
 } from "../constant";
 import { getClientApi } from "../client/api";
 import type {
@@ -56,6 +58,7 @@ export interface ChatStat {
 export interface ChatSession {
   id: string;
   topic: string;
+  difyConversationId?: string;
 
   memoryPrompt: string;
   messages: ChatMessage[];
@@ -313,7 +316,59 @@ export const useChatStore = createPersistStore(
         get().summarizeSession();
       },
 
-      async onUserInput(content: string, attachImages?: string[]) {
+      async sendFiles(file: File) {
+        // 创建FormData对象
+        const formData = new FormData();
+        formData.append("files", file);
+        // 将文件添加到FormData对象中
+        // 如果files是一个FileList对象，可以使用...扩展运算符来展开它
+        // 如果files是一个File对象数组，直接遍历它
+        // 发送请求
+        const response = await fetch(
+          "http://45.204.80.88:5558/api/file_parser",
+          {
+            method: "POST",
+            body: formData,
+            // 如果需要，可以设置其他请求头
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            // 注意：通常不需要设置Content-Type，因为浏览器会自动设置正确的边界
+          },
+        );
+
+        // 处理响应
+        // if (!response.ok) {
+        //   throw new Error('Network response was not ok');
+        // }
+
+        const result = await response.json();
+
+        console.log(result, "fffffffffffffffff");
+
+        return result; // 或者做其他处理
+      },
+      async sendFilesAndConcatenate(attachFiles: any) {
+        let mContent: string | MultimodalContent[] = [];
+
+        for (const file of attachFiles) {
+          // 使用await调用sendFiles函数
+          const result = await this.sendFiles(file);
+          mContent.push({
+            type: "file",
+            file: {
+              url: new Date().toString() + JSON.stringify(file),
+            },
+          });
+        }
+        return mContent;
+      },
+
+      async onUserInput(
+        content: string,
+        attachImages?: string[],
+        attachFiles?: any[],
+      ) {
         const session = get().currentSession();
         const modelConfig = session.mask.modelConfig;
 
@@ -339,6 +394,15 @@ export const useChatStore = createPersistStore(
               };
             }),
           );
+        } else if (attachFiles && attachFiles.length > 0) {
+          mContent = [
+            {
+              type: "text",
+              text: userContent,
+            },
+          ];
+          //Construct the structure according to the current model
+          mContent = await this.sendFilesAndConcatenate(attachFiles);
         }
         let userMessage: ChatMessage = createMessage({
           role: "user",
@@ -566,7 +630,11 @@ export const useChatStore = createPersistStore(
             messages: topicMessages,
             config: {
               model: getSummarizeModel(session.mask.modelConfig.model),
-              stream: false,
+              stream:
+                session.mask.modelConfig.model.toLowerCase() ===
+                ModelProvider.Difyai.toLowerCase()
+                  ? true
+                  : false,
             },
             onFinish(message) {
               get().updateCurrentSession(

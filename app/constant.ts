@@ -29,6 +29,8 @@ export enum ApiPath {
   Azure = "/api/azure",
   OpenAI = "/api/openai",
   Anthropic = "/api/anthropic",
+  Difyai = "/api/difyai",
+  FileUpload = "/api/upload",
 }
 
 export enum SlotID {
@@ -73,16 +75,25 @@ export enum ServiceProvider {
   Azure = "Azure",
   Google = "Google",
   Anthropic = "Anthropic",
+  Difyai = "Difyai",
 }
 
 export enum ModelProvider {
   GPT = "GPT",
   GeminiPro = "GeminiPro",
   Claude = "Claude",
+  Difyai = "Difyai",
 }
 
 export const Anthropic = {
   ChatPath: "v1/messages",
+  ChatPath1: "v1/complete",
+  ExampleEndpoint: "https://api.anthropic.com",
+  Vision: "2023-06-01",
+};
+
+export const Difyai = {
+  ChatPath: "v1/chat-messages",
   ChatPath1: "v1/complete",
   ExampleEndpoint: "https://api.anthropic.com",
   Vision: "2023-06-01",
@@ -165,6 +176,8 @@ const googleModels = [
   "gemini-pro-vision",
 ];
 
+const difyaiModels = ["difyai"];
+
 const anthropicModels = [
   "claude-instant-1.2",
   "claude-2.0",
@@ -176,6 +189,15 @@ const anthropicModels = [
 ];
 
 export const DEFAULT_MODELS = [
+  ...difyaiModels.map((name) => ({
+    name,
+    available: true,
+    provider: {
+      id: "difyai",
+      providerName: "Difyai",
+      providerType: "difyai",
+    },
+  })),
   ...openaiModels.map((name) => ({
     name,
     available: true,

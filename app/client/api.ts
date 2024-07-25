@@ -9,6 +9,7 @@ import { ChatMessage, ModelType, useAccessStore, useChatStore } from "../store";
 import { ChatGPTApi } from "./platforms/openai";
 import { GeminiProApi } from "./platforms/google";
 import { ClaudeApi } from "./platforms/anthropic";
+import { DifyaiApi } from "./platforms/difyai";
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
 
@@ -16,9 +17,12 @@ export const Models = ["gpt-3.5-turbo", "gpt-4"] as const;
 export type ChatModel = ModelType;
 
 export interface MultimodalContent {
-  type: "text" | "image_url";
+  type: "text" | "image_url" | "file";
   text?: string;
   image_url?: {
+    url: string;
+  };
+  file?: {
     url: string;
   };
 }
@@ -104,6 +108,9 @@ export class ClientApi {
       case ModelProvider.Claude:
         this.llm = new ClaudeApi();
         break;
+      case ModelProvider.Difyai:
+        this.llm = new DifyaiApi();
+        break;
       default:
         this.llm = new ChatGPTApi();
     }
@@ -169,6 +176,7 @@ export function getHeaders() {
     const modelConfig = chatStore.currentSession().mask.modelConfig;
     const isGoogle = modelConfig.providerName == ServiceProvider.Google;
     const isAzure = modelConfig.providerName === ServiceProvider.Azure;
+    const isDifyai = modelConfig.providerName === ServiceProvider.Difyai;
     const isAnthropic = modelConfig.providerName === ServiceProvider.Anthropic;
     const isEnabledAccessControl = accessStore.enabledAccessControl();
     const apiKey = isGoogle
@@ -177,6 +185,8 @@ export function getHeaders() {
       ? accessStore.azureApiKey
       : isAnthropic
       ? accessStore.anthropicApiKey
+      : isDifyai
+      ? accessStore.difyaiApiKey
       : accessStore.openaiApiKey;
     return { isGoogle, isAzure, isAnthropic, apiKey, isEnabledAccessControl };
   }
@@ -220,6 +230,8 @@ export function getClientApi(provider: ServiceProvider): ClientApi {
       return new ClientApi(ModelProvider.GeminiPro);
     case ServiceProvider.Anthropic:
       return new ClientApi(ModelProvider.Claude);
+    case ServiceProvider.Difyai:
+      return new ClientApi(ModelProvider.Difyai);
     default:
       return new ClientApi(ModelProvider.GPT);
   }

@@ -56,7 +56,7 @@ const ACCESS_CODES = (function getAccessCodes(): Set<string> {
 })();
 
 const ACCESS_USER_NAME = (function getAccessUserName(): string {
-  return process.env.ACCESS_USER_NAME || ''
+  return process.env.ACCESS_USER_NAME || "";
 })();
 
 function getApiKey(keys?: string) {
@@ -66,7 +66,8 @@ function getApiKey(keys?: string) {
   const apiKey = apiKeys[randomIndex];
   if (apiKey) {
     console.log(
-      `[Server Config] using ${randomIndex + 1} of ${apiKeys.length
+      `[Server Config] using ${randomIndex + 1} of ${
+        apiKeys.length
       } api key - ${apiKey}`,
     );
   }
@@ -111,6 +112,7 @@ export const getServerSideConfig = () => {
 
   return {
     baseUrl: process.env.BASE_URL,
+    uploadFileUrl: process.env.UPLOAD_API_URL,
     apiKey: getApiKey(process.env.OPENAI_API_KEY),
     openaiOrgId: process.env.OPENAI_ORG_ID,
 
@@ -122,6 +124,9 @@ export const getServerSideConfig = () => {
     isGoogle,
     googleApiKey: getApiKey(process.env.GOOGLE_API_KEY),
     googleUrl: process.env.GOOGLE_URL,
+
+    DifyaiApiKey: getApiKey(process.env.JIMMY_API_KEY),
+    DifyaiUrl: process.env.JIMMY_BASE_URL,
 
     isAnthropic,
     anthropicApiKey: getApiKey(process.env.ANTHROPIC_API_KEY),

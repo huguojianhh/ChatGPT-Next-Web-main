@@ -1,5 +1,94 @@
 @import "../styles/animation.scss";
 
+
+.file-list-box {
+  width: 100%;
+  margin-bottom: 20px;
+  align-self: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .file-box {
+    width: calc(33.33333% - 55.33333px);
+    min-width: 130px;
+
+    .delete-image {
+      cursor: pointer;
+    }
+
+    .file {
+      width: 100%;
+      flex: 1;
+      flex-shrink: 0;
+      flex-grow: 0;
+      box-sizing: border-box;
+      display: flex;
+      height: 52px;
+      padding: 10px;
+      align-items: center;
+      gap: 10px;
+      border-radius: 8px;
+      background: var(--floating_stroke_grey_1, #f5f5f5);
+      position: relative;
+
+
+
+      .icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        background-size: cover;
+        background-repeat: no-repeat;
+        position: relative;
+        overflow: hidden;
+      }
+
+
+      .file-info {
+        width: calc(100% - 30px);
+        display: flex;
+        flex-direction: column;
+
+        .name {
+          width: 100%;
+          color: var(--txt_icon_black_1, #1a2029);
+          font-size: 12px;
+          line-height: 20px;
+          text-align: left;
+        }
+
+        .dot,
+        .dots {
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+
+        .dot {
+          white-space: nowrap;
+        }
+
+        .status {
+          .success {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            align-self: stretch;
+            overflow: hidden;
+            color: var(--txt_icon_grey_5, #838a95);
+            text-overflow: ellipsis;
+            font-family: PingFang SC;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 20px;
+          }
+        }
+      }
+    }
+  }
+}
+
 .attach-images {
   position: absolute;
   left: 30px;
@@ -458,7 +547,7 @@
     width: $calc-image-width;
     height: $calc-image-width;
   }
-  
+
   .chat-message-item-image {
     max-width: calc(100vw/3*2);
   }

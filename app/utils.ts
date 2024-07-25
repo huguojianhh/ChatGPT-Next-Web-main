@@ -268,7 +268,9 @@ export function isVisionModel(model: string) {
 export function isSupportUpdateFileModel(model: string) {
   // Note: This is a better way using the TypeScript feature instead of `&&` or `||` (ts v5.5.0-dev.20240314 I've been using)
 
-  const supportKeywords = ["jimmy-4o"];
+  const supportKeywords = [] as string[];
 
-  return supportKeywords.some((keyword) => model.includes(keyword));
+  return supportKeywords.length === 0
+    ? true
+    : supportKeywords.some((keyword) => model.includes(keyword));
 }
